@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Storytelling with Copilot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            navy: '#1f2a52',
+                            cyan: '#00bec7',
+                            ice: '#d2f0f0',
+                            silver: '#abb5bf',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        /* Fixed, No-Scroll Layout */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #1f2a52;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden; /* Absolutely no scrolling */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Tabs --- */
+        .tab-content {
+            display: none;
+            height: 100%;
+            animation: fadeIn 0.4s ease-out forwards;
+            overflow-y: auto; /* Invisible graceful scrolling for small screens */
+            padding-bottom: 1rem; /* Prevent strict bottom cut-off */
+            scrollbar-width: none; /* Hide scrollbar Firefox */
+            -ms-overflow-style: none; /* Hide scrollbar IE/Edge */
+        }
+        .tab-content::-webkit-scrollbar {
+            display: none; /* Hide scrollbar Chrome/Safari */
+        }
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Traditional Tabs --- */
+        .tab-nav-container {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 1rem;
+            border-bottom: 1px solid #d2f0f0;
+        }
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #abb5bf;
+            background-color: #f8fafc;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 0.5rem 0.5rem 0 0;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            position: relative;
+            top: 1px; /* Overlap bottom border */
+        }
+        .tab-btn:hover {
+            color: #1f2a52;
+            background-color: #f1f5f9;
+        }
+        .tab-btn.active {
+            color: #1f2a52;
+            background-color: #ffffff;
+            border-color: #d2f0f0;
+            border-top: 3px solid #00bec7;
+            border-bottom: 1px solid #ffffff; /* Seamless connection to main content */
+        }
+
+        /* --- Dissolve Reveal CSS --- */
+        .dissolve-card {
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .dissolve-front, .dissolve-back {
+            position: absolute;
+            inset: 0;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.4s ease;
+        }
+        .dissolve-back {
+            opacity: 0;
+            pointer-events: none;
+            background-color: #ffffff;
+        }
+        .dissolve-card.revealed .dissolve-front {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .dissolve-card.revealed .dissolve-back {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* --- Hover Wipe Effects --- */
+        .wipe-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            border: 2px solid #abb5bf;
+            background-color: #ffffff;
+            cursor: default;
+            height: 100%;
+            min-height: 220px;
+        }
+        .wipe-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #00bec7;
+            color: #1f2a52;
+            transform: translateY(100%);
+            transition: transform 0.4s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .wipe-card:hover .wipe-overlay {
+            transform: translateY(0);
+        }
+        .wipe-card:hover {
+            border-color: #00bec7;
+        }
+
+        /* --- Builder Reveal --- */
+        #builder-result {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+            transform: scale(0.95) translateY(-10px);
+            pointer-events: none;
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            border-width: 0;
+            margin-top: 0;
+            overflow: hidden;
+        }
+        #builder-result.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+            max-height: 400px;
+            padding-top: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-width: 2px;
+            margin-top: 1.5rem;
+        }
+
+        /* --- Blueprint Modal CSS --- */
+        .blueprint-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(31, 42, 82, 0.85);
+            backdrop-filter: blur(6px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .blueprint-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .blueprint-content {
+            background-color: #1f2a52;
+            background-image: 
+                linear-gradient(rgba(0, 190, 199, 0.15) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 190, 199, 0.15) 1px, transparent 1px);
+            background-size: 20px 20px;
+            border: 2px solid #00bec7;
+            border-radius: 0.5rem;
+            padding: 2.5rem;
+            width: 90%;
+            max-width: 800px;
+            transform: scale(0.95);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            box-shadow: 0 0 40px rgba(0, 190, 199, 0.25);
+            color: #d2f0f0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .blueprint-modal.active .blueprint-content {
+            transform: scale(1);
+        }
+
+        /* Custom Selection */
+        ::selection {
+            background-color: #00bec7;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header Section (Shrinks to fit) -->
+    <header class="flex-shrink-0 pt-4 md:pt-6 px-6 md:px-12 text-center bg-white">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold mb-2 text-brand-navy tracking-tight">
+                Visual Creation with <span class="text-brand-cyan">Copilot</span>
+            </h1>
+            <p class="text-sm font-medium text-brand-navy/80">
+                Turn ideas into clear, engaging infographics using simple prompts. Describe your topic, audience, and refine until perfect.
+            </p>
+        </div>
+        
+        <!-- Tab Navigation -->
+        <nav class="tab-nav-container max-w-6xl mx-auto px-6">
+            <button onclick="switchTab('tab-tips', this)" class="tab-btn active">
+                <i data-lucide="layers" class="w-4 h-4"></i> Core Tips
+            </button>
+            <button onclick="switchTab('tab-refine', this)" class="tab-btn">
+                <i data-lucide="sliders" class="w-4 h-4"></i> Refinement
+            </button>
+            <button onclick="switchTab('tab-build', this)" class="tab-btn">
+                <i data-lucide="terminal-square" class="w-4 h-4"></i> Prompt Builder
+            </button>
+        </nav>
+    </header>
+
+    <!-- Main Content Area (Takes remaining height) -->
+    <main class="flex-1 overflow-hidden p-4 md:p-6 bg-white relative">
+        <div class="max-w-6xl mx-auto h-full relative">
+
+            <!-- TAB 1: Core Tips (Dissolve Reveal) -->
+            <div id="tab-tips" class="tab-content active justify-center relative">
+                <div class="text-center mb-4 shrink-0">
+                    <h2 class="text-2xl font-bold text-brand-navy">Effective Practice Tips</h2>
+                    <p class="text-sm font-medium text-brand-navy/80">Click any card to dissolve and reveal the detailed strategy.</p>
+                </div>
+                
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 flex-1 min-h-0 items-center relative z-10">
+                    <!-- Card 1 -->
+                    <div class="dissolve-card bg-white border-2 border-brand-ice rounded-xl shadow-sm hover:border-brand-cyan hover:shadow-md transition-all h-40" onclick="toggleCard(this, 1)">
+                        <div class="dissolve-front text-center">
+                            <div class="w-12 h-12 bg-brand-ice text-brand-navy rounded-full flex items-center justify-center mb-3 mx-auto">
+                                <i data-lucide="target" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="text-sm font-bold text-brand-navy mb-1">Be Specific</h3>
+                            <span class="text-brand-cyan text-[10px] font-bold mt-auto uppercase tracking-wider flex items-center gap-1 justify-center">Reveal <i data-lucide="eye" class="w-3 h-3"></i></span>
+                        </div>
+                        <div class="dissolve-back text-center bg-brand-ice/30">
+                            <p class="font-medium text-sm leading-snug text-brand-navy">Include format (e.g. “step-by-step infographic”), audience, and style in your prompt.</p>
+                            <span class="text-brand-navy/50 text-[10px] font-bold mt-auto uppercase tracking-wider flex items-center gap-1 justify-center"><i data-lucide="x" class="w-3 h-3"></i> Close</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="dissolve-card bg-white border-2 border-brand-ice rounded-xl shadow-sm hover:border-brand-cyan hover:shadow-md transition-all h-40" onclick="toggleCard(this, 2)">
+                        <div class="dissolve-front text-center">
+                            <div class="w-12 h-12 bg-brand-ice text-brand-navy rounded-full flex items-center justify-center mb-3 mx-auto">
+                                <i data-lucide="layout-list" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="text-sm font-bold text-brand-navy mb-1">Chunk Content</h3>
+                            <span class="text-brand-cyan text-[10px] font-bold mt-auto uppercase tracking-wider flex items-center gap-1 justify-center">Reveal <i data-lucide="eye" class="w-3 h-3"></i></span>
+                        </div>
+                        <div class="dissolve-back text-center bg-brand-ice/30">
+                            <p class="font-medium text-sm leading-snug text-brand-navy">Break content into chunks. Use 3–5 key points to prevent overwhelming the viewer.</p>
+                            <span class="text-brand-navy/50 text-[10px] font-bold mt-auto uppercase tracking-wider flex items-center gap-1 justify-center"><i data-lucide="x" class="w-3 h-3"></i> Close</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="dissolve-card bg-white border-2 border-brand-ice rounded-xl shadow-sm hover:border-brand-cyan hover:shadow-md transition-all h-40" onclick="toggleCard(this, 3)">
+                        <div class="dissolve-front text-center">
+                            <div class="w-12 h-12 bg-brand-ice text-brand-navy rounded-full flex items-center justify-center mb-3 mx-auto">
+                                <i data-lucide="shapes" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="text-sm font-bold text-brand-navy mb-1">Request Visuals</h3>
+                            <span class="text-brand-cyan text-[10px] font-bold mt-auto uppercase tracking-wider flex items-center gap-1 justify-center">Reveal <i data-lucide="eye" class="w-3 h-3"></i></span>
+                        </div>
+                        <div class="dissolve-back text-center bg-brand-ice/30">
+                            <p class="font-medium text-sm leading-snug text-brand-navy">Explicitly ask for visual elements like icons, arrows, charts, or distinct sections.</p>
+                            <span class="text-brand-navy/50 text-[10px] font-bold mt-auto uppercase tracking-wider flex items-center gap-1 justify-center"><i data-lucide="x" class="w-3 h-3"></i> Close</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 4 -->
+                    <div class="dissolve-card bg-white border-2 border-brand-ice rounded-xl shadow-sm hover:border-brand-cyan hover:shadow-md transition-all h-40" onclick="toggleCard(this, 4)">
+                        <div class="dissolve-front text-center">
+                            <div class="w-12 h-12 bg-brand-ice text-brand-navy rounded-full flex items-center justify-center mb-3 mx-auto">
+                                <i data-lucide="type" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="text-sm font-bold text-brand-navy mb-1">Minimal Text</h3>
+                            <span class="text-brand-cyan text-[10px] font-bold mt-auto uppercase tracking-wider flex items-center gap-1 justify-center">Reveal <i data-lucide="eye" class="w-3 h-3"></i></span>
+                        </div>
+                        <div class="dissolve-back text-center bg-brand-ice/30">
+                            <p class="font-medium text-sm leading-snug text-brand-navy">Keep text minimal. Use short phrases or keywords—let the graphics communicate.</p>
+                            <span class="text-brand-navy/50 text-[10px] font-bold mt-auto uppercase tracking-wider flex items-center gap-1 justify-center"><i data-lucide="x" class="w-3 h-3"></i> Close</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Layout Reveal Button (Hidden initially) -->
+                <div id="blueprint-btn-wrapper" class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-1000 z-20">
+                    <button onclick="openBlueprintModal()" class="pointer-events-auto bg-brand-navy/95 backdrop-blur-sm border border-brand-cyan text-brand-cyan px-6 py-3 rounded-xl font-bold text-base hover:bg-brand-cyan hover:text-brand-navy transition-all shadow-[0_0_30px_rgba(0,190,199,0.5)] flex items-center gap-2 transform scale-95 hover:scale-100">
+                        <i data-lucide="layout-template" class="w-5 h-5"></i> Example Layout
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 2: Refinement (Hover & Wipe) -->
+            <div id="tab-refine" class="tab-content justify-center">
+                <div class="text-center mb-4 shrink-0">
+                    <h2 class="text-2xl font-bold text-brand-navy">Refinement & Output</h2>
+                    <p class="text-sm font-medium text-brand-navy/80">Hover over any card to reveal advanced refinement tips.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 flex-1 min-h-0 items-center">
+                    <!-- Wipe Card 1 -->
+                    <div class="wipe-card p-6 flex flex-col items-center justify-center text-center shadow-sm">
+                        <i data-lucide="palette" class="w-10 h-10 text-brand-cyan mb-3"></i>
+                        <h3 class="text-lg font-bold text-brand-navy mb-2">Align with Branding</h3>
+                        <p class="text-xs font-medium text-brand-navy/70">Keep visual consistency.</p>
+                        <span class="absolute bottom-4 text-[10px] font-bold text-brand-navy/50 uppercase tracking-widest animate-pulse">Hover to reveal</span>
+                        
+                        <div class="wipe-overlay">
+                            <i data-lucide="paintbrush" class="w-6 h-6 mb-2 opacity-80 mx-auto"></i>
+                            <p class="font-medium text-sm leading-relaxed text-brand-navy">Specify exact colours, fonts, or tone to match your organisation’s style and brand guidelines perfectly.</p>
+                        </div>
+                    </div>
+
+                    <!-- Wipe Card 2 -->
+                    <div class="wipe-card p-6 flex flex-col items-center justify-center text-center shadow-sm">
+                        <i data-lucide="refresh-cw" class="w-10 h-10 text-brand-cyan mb-3"></i>
+                        <h3 class="text-lg font-bold text-brand-navy mb-2">Iterate & Refine</h3>
+                        <p class="text-xs font-medium text-brand-navy/70">The first result is a starting point.</p>
+                        <span class="absolute bottom-4 text-[10px] font-bold text-brand-navy/50 uppercase tracking-widest animate-pulse">Hover to reveal</span>
+                        
+                        <div class="wipe-overlay">
+                            <i data-lucide="message-square-plus" class="w-6 h-6 mb-2 opacity-80 mx-auto"></i>
+                            <p class="font-medium text-sm leading-relaxed text-brand-navy">Use follow-up prompts to tweak the output. Try adding commands like "simplify layout" or "make it more professional."</p>
+                        </div>
+                    </div>
+
+                    <!-- Wipe Card 3 -->
+                    <div class="wipe-card p-6 flex flex-col items-center justify-center text-center shadow-sm">
+                        <i data-lucide="eye" class="w-10 h-10 text-brand-cyan mb-3"></i>
+                        <h3 class="text-lg font-bold text-brand-navy mb-2">Check Accessibility</h3>
+                        <p class="text-xs font-medium text-brand-navy/70">Ensure everyone can learn.</p>
+                        <span class="absolute bottom-4 text-[10px] font-bold text-brand-navy/50 uppercase tracking-widest animate-pulse">Hover to reveal</span>
+                        
+                        <div class="wipe-overlay">
+                            <i data-lucide="scan-line" class="w-6 h-6 mb-2 opacity-80 mx-auto"></i>
+                            <p class="font-medium text-sm leading-relaxed text-brand-navy">Review the output to ensure strong color contrast, readable font sizes, and a clear, logical visual structure.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Prompt Builder (Inline Reveal) -->
+            <div id="tab-build" class="tab-content">
+                <div class="text-center mb-4 shrink-0">
+                    <h2 class="text-2xl font-bold text-brand-navy">Prompt Assembly Engine</h2>
+                    <p class="text-sm font-medium text-brand-navy/80">Select parameters to instantly assemble an effective example prompt.</p>
+                </div>
+
+                <div class="flex flex-col bg-white border border-brand-ice rounded-2xl p-6 shadow-sm">
+                    <!-- Dropdowns Row -->
+                    <div class="grid md:grid-cols-3 gap-4 shrink-0 mb-6">
+                        <div>
+                            <label class="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-2">1. Topic / Action</label>
+                            <select id="sel-topic" onchange="resetBuilder()" class="w-full p-2.5 rounded border border-brand-ice bg-gray-50 text-brand-navy text-sm focus:border-brand-cyan focus:outline-none cursor-pointer font-medium">
+                                <option value="">Choose topic...</option>
+                                <option value="handle customer complaints">Handle customer complaints</option>
+                                <option value="onboard a new employee">Onboard a new employee</option>
+                                <option value="conduct a safety check">Conduct a safety check</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-2">2. Visual Elements</label>
+                            <select id="sel-elements" onchange="resetBuilder()" class="w-full p-2.5 rounded border border-brand-ice bg-gray-50 text-brand-navy text-sm focus:border-brand-cyan focus:outline-none cursor-pointer font-medium">
+                                <option value="">Choose elements...</option>
+                                <option value="icons">Icons</option>
+                                <option value="flowchart arrows">Flowchart arrows</option>
+                                <option value="3D illustrations">3D illustrations</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-2">3. Colour Palette</label>
+                            <select id="sel-palette" onchange="resetBuilder()" class="w-full p-2.5 rounded border border-brand-ice bg-gray-50 text-brand-navy text-sm focus:border-brand-cyan focus:outline-none cursor-pointer font-medium">
+                                <option value="">Choose colours...</option>
+                                <option value="blue and white">Blue and white</option>
+                                <option value="high-contrast vibrant">High-contrast vibrant</option>
+                                <option value="warm corporate">Warm corporate</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="text-center shrink-0 mb-6">
+                        <button onclick="revealPrompt()" class="bg-brand-navy text-white px-8 py-2.5 rounded-full font-bold text-sm hover:bg-brand-cyan hover:text-brand-navy transition-all shadow-md">
+                            Generate Prompt
+                        </button>
+                        <p id="builder-error" class="text-red-500 text-xs font-bold mt-2 hidden">Please select all three options.</p>
+                    </div>
+
+                    <!-- Inline Result Reveal -->
+                    <div id="builder-result" class="bg-brand-ice/20 border-solid border-brand-cyan/20 rounded-xl px-6 flex flex-col items-center justify-center relative">
+                        <i data-lucide="terminal" class="absolute top-4 left-4 w-6 h-6 text-brand-cyan opacity-50"></i>
+                        <p id="final-prompt-text" class="text-lg md:text-xl font-mono text-brand-navy leading-relaxed text-center max-w-3xl"></p>
+                        
+                        <button onclick="copyToClipboard(this)" class="mt-6 bg-brand-cyan text-brand-navy font-bold py-2 px-6 rounded-lg hover:bg-[#00a8b0] transition-colors flex items-center gap-2 text-sm shadow-sm">
+                            <i data-lucide="copy" class="w-4 h-4"></i> Copy to Clipboard
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Blueprint Modal Overlay -->
+    <div id="blueprint-modal" class="blueprint-modal" onclick="if(event.target === this) closeBlueprintModal()">
+        <div class="blueprint-content">
+            <button onclick="closeBlueprintModal()" class="absolute top-4 right-4 text-brand-cyan hover:text-white transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            
+            <h3 class="text-xl md:text-2xl font-bold border-b border-brand-cyan pb-2 mb-8 uppercase tracking-widest text-brand-cyan flex items-center gap-3">
+                <i data-lucide="map" class="w-6 h-6"></i> Blueprint: Customer Complaints
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- Blueprint Step 1 -->
+                <div class="border border-brand-cyan/50 p-4 relative bg-brand-navy/50">
+                    <div class="absolute -top-3 -left-3 w-6 h-6 bg-brand-navy border border-brand-cyan text-brand-cyan flex items-center justify-center text-xs font-bold rounded-full">01</div>
+                    <i data-lucide="message-square" class="w-8 h-8 text-brand-cyan/70 mb-3"></i>
+                    <h4 class="text-brand-cyan font-bold uppercase text-sm mb-2">Listen</h4>
+                    <p class="text-xs text-brand-ice/80">Acknowledge issue without interruption.</p>
+                </div>
+                
+                <!-- Blueprint Step 2 -->
+                <div class="border border-brand-cyan/50 p-4 relative bg-brand-navy/50 md:mt-8">
+                    <div class="absolute -top-3 -left-3 w-6 h-6 bg-brand-navy border border-brand-cyan text-brand-cyan flex items-center justify-center text-xs font-bold rounded-full">02</div>
+                    <i data-lucide="heart" class="w-8 h-8 text-brand-cyan/70 mb-3"></i>
+                    <h4 class="text-brand-cyan font-bold uppercase text-sm mb-2">Empathize</h4>
+                    <p class="text-xs text-brand-ice/80">Validate their feelings sincerely.</p>
+                </div>
+                
+                <!-- Blueprint Step 3 -->
+                <div class="border border-brand-cyan/50 p-4 relative bg-brand-navy/50">
+                    <div class="absolute -top-3 -left-3 w-6 h-6 bg-brand-navy border border-brand-cyan text-brand-cyan flex items-center justify-center text-xs font-bold rounded-full">03</div>
+                    <i data-lucide="search" class="w-8 h-8 text-brand-cyan/70 mb-3"></i>
+                    <h4 class="text-brand-cyan font-bold uppercase text-sm mb-2">Investigate</h4>
+                    <p class="text-xs text-brand-ice/80">Ask clarifying questions.</p>
+                </div>
+                
+                <!-- Blueprint Step 4 -->
+                <div class="border border-brand-cyan/50 p-4 relative bg-brand-navy/50 md:mt-8">
+                    <div class="absolute -top-3 -left-3 w-6 h-6 bg-brand-navy border border-brand-cyan text-brand-cyan flex items-center justify-center text-xs font-bold rounded-full">04</div>
+                    <i data-lucide="wrench" class="w-8 h-8 text-brand-cyan/70 mb-3"></i>
+                    <h4 class="text-brand-cyan font-bold uppercase text-sm mb-2">Resolve</h4>
+                    <p class="text-xs text-brand-ice/80">Offer clear, actionable solutions.</p>
+                </div>
+            </div>
+            
+            <div class="mt-12 text-center text-brand-cyan/80 text-[10px] md:text-xs border-t border-brand-cyan/30 pt-4 tracking-wide font-semibold">
+                PRO TIP: "The best infographics don't just decorate information; they reveal it."
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Reveal Tracker Logic for Core Tips
+        const viewedCards = new Set();
+        
+        function toggleCard(cardElement, cardId) {
+            // Toggle visual state
+            cardElement.classList.toggle('revealed');
+            
+            // Track if it has been viewed
+            viewedCards.add(cardId);
+            
+            // If all 4 cards have been clicked/viewed, show the blueprint button
+            if (viewedCards.size === 4) {
+                const btnWrapper = document.getElementById('blueprint-btn-wrapper');
+                btnWrapper.classList.remove('opacity-0');
+                btnWrapper.classList.add('opacity-100');
+            }
+        }
+
+        // Blueprint Modal Logic
+        function openBlueprintModal() {
+            document.getElementById('blueprint-modal').classList.add('active');
+        }
+
+        function closeBlueprintModal() {
+            document.getElementById('blueprint-modal').classList.remove('active');
+        }
+
+        // Tab Switching Logic
+        function switchTab(tabId, btnElement) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Remove active class from all buttons
+            const btns = document.querySelectorAll('.tab-btn');
+            btns.forEach(btn => btn.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tabId).classList.add('active');
+            
+            // Highlight selected button
+            btnElement.classList.add('active');
+        }
+
+        // Prompt Builder Logic
+        const resultContainer = document.getElementById('builder-result');
+        const finalPromptText = document.getElementById('final-prompt-text');
+        const errorMsg = document.getElementById('builder-error');
+
+        function revealPrompt() {
+            const topic = document.getElementById('sel-topic').value;
+            const elements = document.getElementById('sel-elements').value;
+            const palette = document.getElementById('sel-palette').value;
+
+            if (!topic || !elements || !palette) {
+                errorMsg.classList.remove('hidden');
+                resultContainer.classList.remove('active');
+                return;
+            }
+
+            errorMsg.classList.add('hidden');
+            
+            // Format HTML version for display
+            finalPromptText.innerHTML = `<span class="text-brand-cyan font-bold">"</span>Create a clean, professional infographic image showing 4 steps to <span class="font-bold border-b-2 border-brand-cyan">${topic}</span>, using <span class="font-bold border-b-2 border-brand-cyan">${elements}</span>, a <span class="font-bold border-b-2 border-brand-cyan">${palette}</span> colour palette, and minimal text.<span class="text-brand-cyan font-bold">"</span>`;
+            
+            // Store raw text for copying
+            finalPromptText.dataset.raw = `"Create a clean, professional infographic image showing 4 steps to ${topic}, using ${elements}, a ${palette} colour palette, and minimal text."`;
+
+            // Reveal Animation
+            resultContainer.classList.add('active');
+            
+            // Reset copy button if it was previously clicked
+            const copyBtn = resultContainer.querySelector('button');
+            copyBtn.innerHTML = '<i data-lucide="copy" class="w-4 h-4"></i> Copy to Clipboard';
+            copyBtn.className = "mt-6 bg-brand-cyan text-brand-navy font-bold py-2 px-6 rounded-lg hover:bg-[#00a8b0] transition-colors flex items-center gap-2 text-sm shadow-sm";
+            lucide.createIcons();
+        }
+
+        function resetBuilder() {
+            // Hide the result if user changes an option
+            resultContainer.classList.remove('active');
+            errorMsg.classList.add('hidden');
+        }
+
+        function copyToClipboard(btn) {
+            const rawText = finalPromptText.dataset.raw;
+            
+            // Handle Copy
+            const el = document.createElement('textarea');
+            el.value = rawText;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            // UI Feedback
+            btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> Copied!';
+            btn.classList.replace('bg-brand-cyan', 'bg-brand-navy');
+            btn.classList.replace('text-brand-navy', 'text-white');
+            btn.classList.replace('hover:bg-[#00a8b0]', 'hover:bg-brand-navy');
+            lucide.createIcons();
+
+            setTimeout(() => {
+                btn.innerHTML = '<i data-lucide="copy" class="w-4 h-4"></i> Copy to Clipboard';
+                btn.classList.replace('bg-brand-navy', 'bg-brand-cyan');
+                btn.classList.replace('text-white', 'text-brand-navy');
+                btn.classList.replace('hover:bg-brand-navy', 'hover:bg-[#00a8b0]');
+                lucide.createIcons();
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
