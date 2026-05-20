@@ -138,8 +138,7 @@
             border: 2px solid #abb5bf;
             background-color: #ffffff;
             cursor: default;
-            height: 100%;
-            min-height: 220px;
+            height: 180px; /* Reduced height */
         }
         .wipe-overlay {
             position: absolute;
@@ -168,24 +167,13 @@
         #builder-result {
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             opacity: 0;
-            transform: scale(0.95) translateY(-10px);
+            transform: scale(0.95);
             pointer-events: none;
-            max-height: 0;
-            padding-top: 0;
-            padding-bottom: 0;
-            border-width: 0;
-            margin-top: 0;
-            overflow: hidden;
         }
         #builder-result.active {
             opacity: 1;
-            transform: scale(1) translateY(0);
+            transform: scale(1);
             pointer-events: auto;
-            max-height: 400px;
-            padding-top: 1.5rem;
-            padding-bottom: 1.5rem;
-            border-width: 2px;
-            margin-top: 1.5rem;
         }
 
         /* --- Blueprint Modal CSS --- */
@@ -237,7 +225,6 @@
 </head>
 <body class="antialiased">
 
-    <!-- Header Section (Shrinks to fit) -->
     <header class="flex-shrink-0 pt-4 md:pt-6 px-6 md:px-12 text-center bg-white">
         <div class="max-w-4xl mx-auto">
             <h1 class="text-3xl font-bold mb-2 text-brand-navy tracking-tight">
@@ -248,7 +235,6 @@
             </p>
         </div>
         
-        <!-- Tab Navigation -->
         <nav class="tab-nav-container max-w-6xl mx-auto px-6">
             <button onclick="switchTab('tab-tips', this)" class="tab-btn active">
                 <i data-lucide="layers" class="w-4 h-4"></i> Core Tips
@@ -262,11 +248,9 @@
         </nav>
     </header>
 
-    <!-- Main Content Area (Takes remaining height) -->
     <main class="flex-1 overflow-hidden p-4 md:p-6 bg-white relative">
         <div class="max-w-6xl mx-auto h-full relative">
 
-            <!-- TAB 1: Core Tips (Dissolve Reveal) -->
             <div id="tab-tips" class="tab-content active justify-center relative">
                 <div class="text-center mb-4 shrink-0">
                     <h2 class="text-2xl font-bold text-brand-navy">Effective Practice Tips</h2>
@@ -274,7 +258,6 @@
                 </div>
                 
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 flex-1 min-h-0 items-center relative z-10">
-                    <!-- Card 1 -->
                     <div class="dissolve-card bg-white border-2 border-brand-ice rounded-xl shadow-sm hover:border-brand-cyan hover:shadow-md transition-all h-40" onclick="toggleCard(this, 1)">
                         <div class="dissolve-front text-center">
                             <div class="w-12 h-12 bg-brand-ice text-brand-navy rounded-full flex items-center justify-center mb-3 mx-auto">
@@ -289,7 +272,6 @@
                         </div>
                     </div>
 
-                    <!-- Card 2 -->
                     <div class="dissolve-card bg-white border-2 border-brand-ice rounded-xl shadow-sm hover:border-brand-cyan hover:shadow-md transition-all h-40" onclick="toggleCard(this, 2)">
                         <div class="dissolve-front text-center">
                             <div class="w-12 h-12 bg-brand-ice text-brand-navy rounded-full flex items-center justify-center mb-3 mx-auto">
@@ -304,7 +286,6 @@
                         </div>
                     </div>
 
-                    <!-- Card 3 -->
                     <div class="dissolve-card bg-white border-2 border-brand-ice rounded-xl shadow-sm hover:border-brand-cyan hover:shadow-md transition-all h-40" onclick="toggleCard(this, 3)">
                         <div class="dissolve-front text-center">
                             <div class="w-12 h-12 bg-brand-ice text-brand-navy rounded-full flex items-center justify-center mb-3 mx-auto">
@@ -319,7 +300,6 @@
                         </div>
                     </div>
 
-                    <!-- Card 4 -->
                     <div class="dissolve-card bg-white border-2 border-brand-ice rounded-xl shadow-sm hover:border-brand-cyan hover:shadow-md transition-all h-40" onclick="toggleCard(this, 4)">
                         <div class="dissolve-front text-center">
                             <div class="w-12 h-12 bg-brand-ice text-brand-navy rounded-full flex items-center justify-center mb-3 mx-auto">
@@ -335,7 +315,6 @@
                     </div>
                 </div>
 
-                <!-- Example Layout Reveal Button (Hidden initially) -->
                 <div id="blueprint-btn-wrapper" class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-1000 z-20">
                     <button onclick="openBlueprintModal()" class="pointer-events-auto bg-brand-navy/95 backdrop-blur-sm border border-brand-cyan text-brand-cyan px-6 py-3 rounded-xl font-bold text-base hover:bg-brand-cyan hover:text-brand-navy transition-all shadow-[0_0_30px_rgba(0,190,199,0.5)] flex items-center gap-2 transform scale-95 hover:scale-100">
                         <i data-lucide="layout-template" class="w-5 h-5"></i> Example Layout
@@ -343,7 +322,6 @@
                 </div>
             </div>
 
-            <!-- TAB 2: Refinement (Hover & Wipe) -->
             <div id="tab-refine" class="tab-content justify-center">
                 <div class="text-center mb-4 shrink-0">
                     <h2 class="text-2xl font-bold text-brand-navy">Refinement & Output</h2>
@@ -351,7 +329,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 flex-1 min-h-0 items-center">
-                    <!-- Wipe Card 1 -->
                     <div class="wipe-card p-6 flex flex-col items-center justify-center text-center shadow-sm">
                         <i data-lucide="palette" class="w-10 h-10 text-brand-cyan mb-3"></i>
                         <h3 class="text-lg font-bold text-brand-navy mb-2">Align with Branding</h3>
@@ -364,7 +341,6 @@
                         </div>
                     </div>
 
-                    <!-- Wipe Card 2 -->
                     <div class="wipe-card p-6 flex flex-col items-center justify-center text-center shadow-sm">
                         <i data-lucide="refresh-cw" class="w-10 h-10 text-brand-cyan mb-3"></i>
                         <h3 class="text-lg font-bold text-brand-navy mb-2">Iterate & Refine</h3>
@@ -377,7 +353,6 @@
                         </div>
                     </div>
 
-                    <!-- Wipe Card 3 -->
                     <div class="wipe-card p-6 flex flex-col items-center justify-center text-center shadow-sm">
                         <i data-lucide="eye" class="w-10 h-10 text-brand-cyan mb-3"></i>
                         <h3 class="text-lg font-bold text-brand-navy mb-2">Check Accessibility</h3>
@@ -392,15 +367,13 @@
                 </div>
             </div>
 
-            <!-- TAB 3: Prompt Builder (Inline Reveal) -->
             <div id="tab-build" class="tab-content">
                 <div class="text-center mb-4 shrink-0">
                     <h2 class="text-2xl font-bold text-brand-navy">Prompt Assembly Engine</h2>
                     <p class="text-sm font-medium text-brand-navy/80">Select parameters to instantly assemble an effective example prompt.</p>
                 </div>
 
-                <div class="flex flex-col bg-white border border-brand-ice rounded-2xl p-6 shadow-sm">
-                    <!-- Dropdowns Row -->
+                <div class="flex-1 flex flex-col min-h-0 bg-white border border-brand-ice rounded-2xl p-6 shadow-sm">
                     <div class="grid md:grid-cols-3 gap-4 shrink-0 mb-6">
                         <div>
                             <label class="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-2">1. Topic / Action</label>
@@ -431,7 +404,6 @@
                         </div>
                     </div>
 
-                    <!-- Action Button -->
                     <div class="text-center shrink-0 mb-6">
                         <button onclick="revealPrompt()" class="bg-brand-navy text-white px-8 py-2.5 rounded-full font-bold text-sm hover:bg-brand-cyan hover:text-brand-navy transition-all shadow-md">
                             Generate Prompt
@@ -439,8 +411,7 @@
                         <p id="builder-error" class="text-red-500 text-xs font-bold mt-2 hidden">Please select all three options.</p>
                     </div>
 
-                    <!-- Inline Result Reveal -->
-                    <div id="builder-result" class="bg-brand-ice/20 border-solid border-brand-cyan/20 rounded-xl px-6 flex flex-col items-center justify-center relative">
+                    <div id="builder-result" class="flex-1 bg-brand-ice/20 border-2 border-brand-cyan/20 rounded-xl p-6 flex flex-col items-center justify-center relative overflow-hidden">
                         <i data-lucide="terminal" class="absolute top-4 left-4 w-6 h-6 text-brand-cyan opacity-50"></i>
                         <p id="final-prompt-text" class="text-lg md:text-xl font-mono text-brand-navy leading-relaxed text-center max-w-3xl"></p>
                         
@@ -454,7 +425,6 @@
         </div>
     </main>
 
-    <!-- Blueprint Modal Overlay -->
     <div id="blueprint-modal" class="blueprint-modal" onclick="if(event.target === this) closeBlueprintModal()">
         <div class="blueprint-content">
             <button onclick="closeBlueprintModal()" class="absolute top-4 right-4 text-brand-cyan hover:text-white transition-colors">
@@ -466,7 +436,6 @@
             </h3>
             
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <!-- Blueprint Step 1 -->
                 <div class="border border-brand-cyan/50 p-4 relative bg-brand-navy/50">
                     <div class="absolute -top-3 -left-3 w-6 h-6 bg-brand-navy border border-brand-cyan text-brand-cyan flex items-center justify-center text-xs font-bold rounded-full">01</div>
                     <i data-lucide="message-square" class="w-8 h-8 text-brand-cyan/70 mb-3"></i>
@@ -474,7 +443,6 @@
                     <p class="text-xs text-brand-ice/80">Acknowledge issue without interruption.</p>
                 </div>
                 
-                <!-- Blueprint Step 2 -->
                 <div class="border border-brand-cyan/50 p-4 relative bg-brand-navy/50 md:mt-8">
                     <div class="absolute -top-3 -left-3 w-6 h-6 bg-brand-navy border border-brand-cyan text-brand-cyan flex items-center justify-center text-xs font-bold rounded-full">02</div>
                     <i data-lucide="heart" class="w-8 h-8 text-brand-cyan/70 mb-3"></i>
@@ -482,7 +450,6 @@
                     <p class="text-xs text-brand-ice/80">Validate their feelings sincerely.</p>
                 </div>
                 
-                <!-- Blueprint Step 3 -->
                 <div class="border border-brand-cyan/50 p-4 relative bg-brand-navy/50">
                     <div class="absolute -top-3 -left-3 w-6 h-6 bg-brand-navy border border-brand-cyan text-brand-cyan flex items-center justify-center text-xs font-bold rounded-full">03</div>
                     <i data-lucide="search" class="w-8 h-8 text-brand-cyan/70 mb-3"></i>
@@ -490,7 +457,6 @@
                     <p class="text-xs text-brand-ice/80">Ask clarifying questions.</p>
                 </div>
                 
-                <!-- Blueprint Step 4 -->
                 <div class="border border-brand-cyan/50 p-4 relative bg-brand-navy/50 md:mt-8">
                     <div class="absolute -top-3 -left-3 w-6 h-6 bg-brand-navy border border-brand-cyan text-brand-cyan flex items-center justify-center text-xs font-bold rounded-full">04</div>
                     <i data-lucide="wrench" class="w-8 h-8 text-brand-cyan/70 mb-3"></i>
@@ -505,7 +471,6 @@
         </div>
     </div>
 
-    <!-- Scripts -->
     <script>
         // Initialize Icons
         lucide.createIcons();
@@ -573,10 +538,10 @@
             errorMsg.classList.add('hidden');
             
             // Format HTML version for display
-            finalPromptText.innerHTML = `<span class="text-brand-cyan font-bold">"</span>Create a clean, professional infographic image showing 4 steps to <span class="font-bold border-b-2 border-brand-cyan">${topic}</span>, using <span class="font-bold border-b-2 border-brand-cyan">${elements}</span>, a <span class="font-bold border-b-2 border-brand-cyan">${palette}</span> colour palette, and minimal text.<span class="text-brand-cyan font-bold">"</span>`;
+            finalPromptText.innerHTML = `<span class="text-brand-cyan font-bold">"</span>Create a clean, professional infographic showing 4 steps to <span class="font-bold border-b-2 border-brand-cyan">${topic}</span>, using <span class="font-bold border-b-2 border-brand-cyan">${elements}</span>, a <span class="font-bold border-b-2 border-brand-cyan">${palette}</span> colour palette, and minimal text.<span class="text-brand-cyan font-bold">"</span>`;
             
             // Store raw text for copying
-            finalPromptText.dataset.raw = `"Create a clean, professional infographic image showing 4 steps to ${topic}, using ${elements}, a ${palette} colour palette, and minimal text."`;
+            finalPromptText.dataset.raw = `"Create a clean, professional infographic showing 4 steps to ${topic}, using ${elements}, a ${palette} colour palette, and minimal text."`;
 
             // Reveal Animation
             resultContainer.classList.add('active');
